@@ -18,7 +18,7 @@ results = run_cem_planner(
     # CEM parameters
     num_dof=2,
     num_batch=500,  # Use More samples for better optimization
-    num_steps=20,     # Use More steps for longer planning horizon
+    num_steps=10,     # Use More steps for longer planning horizon
     num_elite=0.05,   # Use More elite samples for better convergence #Int(num_elite*num_batch) is used to select elite samples
     timestep=timestep,     # Simulation Time Step Use Smaller timestep for more accurate simulation
     

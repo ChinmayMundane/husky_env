@@ -8,9 +8,7 @@ import jax
 import os
 from mujoco import viewer
 import matplotlib.pyplot as plt
-from quat_math import rotation_quaternion, quaternion_multiply, quaternion_distance
 import argparse
-from sklearn.neighbors import NearestNeighbors
 from functools import partial
 
 import contextlib
@@ -56,95 +54,6 @@ class MuJoCoPointCloudGenerator:
         
         print(f"Initialized point cloud generator with camera '{cam_name}'")
 
-    def generate_point_cloud(self, data, max_depth=10.0, downsample_factor=1):
-        """Generate point cloud from current scene"""
-        mujoco.mj_forward(self.model, data)
-        self.renderer.update_scene(data, camera=self.cam_name)
-
-        # Render RGB and depth
-        self.renderer.enable_depth_rendering()
-        depth = self.renderer.render()
-        self.renderer.disable_depth_rendering()
-        rgb = self.renderer.render()
-
-        assert depth.shape[:2] == rgb.shape[:2], \
-            f"Mismatch: depth.shape={depth.shape}, rgb.shape={rgb.shape}"
-
-        H, W = depth.shape
-        z = depth
-
-        if downsample_factor > 1:
-            z = z[::downsample_factor, ::downsample_factor]
-            rgb = rgb[::downsample_factor, ::downsample_factor, :]
-
-        H, W = z.shape
-
-        # Generate pixel grid
-        i, j = np.meshgrid(np.arange(W), np.arange(H))
-        i = i.astype(np.float32)
-        j = j.astype(np.float32)
-
-        x = (i - self.cx) * z / self.f
-        y = (j - self.cy) * z / self.f
-
-        points_cam = np.stack((x, -y, -z), axis=-1).reshape(-1, 3)
-
-        # Transform to world coordinates
-        cam_pos = data.cam_xpos[self.cam_id]
-        cam_mat = data.cam_xmat[self.cam_id].reshape(3, 3)
-        points_world = (cam_mat @ points_cam.T).T + cam_pos
-
-        # Flatten RGB
-        rgb_flat = rgb.reshape(-1, 3)
-
-        # Filter valid points
-        valid_mask = ~(np.isnan(points_world).any(axis=1) | np.isinf(points_world).any(axis=1))
-        valid_mask &= np.abs(points_world[:, 2]) < max_depth
-        valid_mask &= z.flatten() > 0.01
-
-        points = points_world[valid_mask]
-        colors = rgb_flat[valid_mask].astype(np.uint8)
-
-        return points, colors
-
-
-    def accumulate_point_cloud(self, data, max_depth=10.0, downsample_factor=1):
-        """Generate and accumulate point cloud"""
-        points, colors = self.generate_point_cloud(data, max_depth, downsample_factor)
-        
-        # Append to accumulated buffers
-        self.accumulated_points = np.vstack((self.accumulated_points, points))
-        self.accumulated_colors = np.vstack((self.accumulated_colors, colors))
-        
-        return points, colors
-
-    def deduplicate_points(self, points, colors, threshold=0.01):
-        """Merge nearby points"""
-        if len(points) == 0:
-            return points, colors
-            
-        nbrs = NearestNeighbors(radius=threshold).fit(points)
-        clusters = nbrs.radius_neighbors(points, return_distance=False)
-        
-        unique_points = []
-        unique_colors = []
-        visited = set()
-        
-        for i, cluster in enumerate(clusters):
-            if i not in visited:
-                cluster_points = points[cluster]
-                cluster_colors = colors[cluster]
-                unique_points.append(np.mean(cluster_points, axis=0))
-                unique_colors.append(np.mean(cluster_colors, axis=0))
-                visited.update(cluster)
-                
-        return np.array(unique_points), np.array(unique_colors)
-
-
-    def reset_accumulation(self):
-        """Clear accumulated points"""
-        self.accumulated_points = np.empty((0, 3))
-        self.accumulated_colors = np.empty((0, 3))
 
 
 @partial(jax.jit, static_argnames=['nvar', 'num_batch'])
