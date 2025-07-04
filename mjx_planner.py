@@ -432,7 +432,7 @@ class cem_planner():
 		base_x = base_pos[-1, 0]
 		cost_pos = jnp.linalg.norm(base_x - target_x)
 		cost_angvel = jnp.sum(jnp.abs(base_angvel))
-		cost = 1.0 * cost_pos + 0.1 * cost_angvel
+		cost = 0.0 * cost_pos + 0.1 * cost_angvel
 		return cost
 	
 	@partial(jax.jit, static_argnums=(0, ))

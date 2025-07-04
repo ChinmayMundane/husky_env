@@ -96,10 +96,9 @@ def run_cem_planner(
     obst_pos = [cem.mjx_data.xpos[i] for i in obstacle_indices]
     obst_quat = [cem.mjx_data.xquat[i] for i in obstacle_indices]
 
-    data.qpos[:num_dof] = jnp.array(initial_qpos)
+    data.qpos = jnp.array(initial_qpos)
     mujoco.mj_forward(model, data)
 
-    # Initialize point cloud generator if enabled
 
     # Initialize CEM variables
     xi_mean_single = jnp.zeros(cem.nvar_single)
@@ -129,7 +128,7 @@ def run_cem_planner(
         
 
                     # Main CEM planning loop
-                    target_pos = np.array([0.2,0.2,0.0])
+                    target_pos = np.array([10.0,10.0,0.0])
                     target_quat = np.array([0, 0, 0, 1])
 
                     if np.isnan(xi_cov).any():
@@ -193,15 +192,23 @@ def run_cem_planner(
                     # Apply control as per MPC coupled with  CEM
                     vel_action = np.mean(best_ctrl[1:int(num_steps*0.9)], axis=0)
 
-                    vel_action = np.array([0.1,0.1])
+                    # print(f"vel_action: {vel_action}")
+
+                    # vel_action = np.array([4.0,0.0])
 
                     print(f"vel_action: {vel_action}")
-                    print(f"vel_action shape: {vel_action.shape}")
-                    print(f"best_ctrl: {best_ctrl}")
-                    print(f"best_ctrl shape: {best_ctrl.shape}")
+
+
+                    # print(f"vel_action: {vel_action}")
+                    # print(f"vel_action shape: {vel_action.shape}")
+                    # print(f"best_ctrl: {best_ctrl}")
+                    # print(f"best_ctrl shape: {best_ctrl.shape}")
 
                     data.ctrl[:num_dof] = vel_action
                     mujoco.mj_step(model, data)    
+
+                    print(f"data.qpos: {data.qpos}")
+                    print(f"data.qvel: {data.qvel}")
 
                     # Store data
       
