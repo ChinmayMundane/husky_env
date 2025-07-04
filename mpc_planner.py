@@ -19,43 +19,6 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 
-
-class MuJoCoPointCloudGenerator:
-    def __init__(self, model, cam_name="camera1", height=480, width=640, output_dir="data_simulation"):
-        self.model = model
-        self.cam_name = cam_name
-        self.height = height
-        self.width = width
-        self.output_dir = output_dir
-        
-        # Get camera ID
-        try:
-            self.cam_id = model.camera(cam_name).id
-        except:
-            raise ValueError(f"Camera '{cam_name}' not found in model")
-        
-        # Initialize renderer
-        self.renderer = mujoco.Renderer(model, height=height, width=width)
-        
-        # Calculate camera intrinsics
-        fovy = model.cam_fovy[self.cam_id]
-        self.f = height / (2 * np.tan(np.deg2rad(fovy / 2)))
-        self.cx, self.cy = width / 2, height / 2
-        
-        # Create meshgrids for projection
-        self.i, self.j = np.meshgrid(np.arange(width), np.arange(height), indexing='xy')
-        
-        # Create output directory
-        os.makedirs(output_dir, exist_ok=True)
-        
-        # Accumulation buffers
-        self.accumulated_points = np.empty((0, 3))
-        self.accumulated_colors = np.empty((0, 3))
-        
-        print(f"Initialized point cloud generator with camera '{cam_name}'")
-
-
-
 @partial(jax.jit, static_argnames=['nvar', 'num_batch'])
 def compute_xi_samples(key, xi_mean, xi_cov, nvar, num_batch):
     key, subkey = jax.random.split(key)
@@ -76,25 +39,16 @@ def run_cem_planner(
     num_elite=None,
     timestep=None,
     initial_qpos=None,
-    ik_pos_thresh=None,
-    ik_rot_thresh=None,
-    collision_free_ik_dt=None,
     target_names=None,
     show_viewer=None,
     cam_distance=None,
     show_contact_points=None,
-    position_threshold=None,
-    rotation_threshold=None,
     save_data=None,
     data_dir=None,
-    stop_at_final_target=None,
-    inference=None,
-    rnn=None,
     max_pos=None,
     max_vel=None,
     max_acc=None,
     max_jerk=None,
-
     cam_name=None,
 ):
     # Initialize data structures
@@ -208,6 +162,11 @@ def run_cem_planner(
                         xi_samples
                     )
 
+                    # print(f"CEM cost: {cost}")
+                    # print(f"CEM best ctrl: {best_ctrl}")
+                    # print(f"CEM best traj: {best_traj}")
+                    # print(f"CEM base_pos: {base_pos}")
+
 
                     # Check target convergence
                     # current_cost_g = np.linalg.norm(data.site_xpos[cem.tcp_id] - target_pos)   
@@ -233,6 +192,14 @@ def run_cem_planner(
 
                     # Apply control as per MPC coupled with  CEM
                     vel_action = np.mean(best_ctrl[1:int(num_steps*0.9)], axis=0)
+
+                    vel_action = np.array([0.1,0.1])
+
+                    print(f"vel_action: {vel_action}")
+                    print(f"vel_action shape: {vel_action.shape}")
+                    print(f"best_ctrl: {best_ctrl}")
+                    print(f"best_ctrl shape: {best_ctrl.shape}")
+
                     data.ctrl[:num_dof] = vel_action
                     mujoco.mj_step(model, data)    
 
@@ -343,7 +310,7 @@ if __name__ == "__main__":
     parser.add_argument('--maxiter_projection', type=int, default=5)
     
     # Initial configuration
-    parser.add_argument('--initial_qpos', type=float, nargs='+', default=[1.5, -1.8, 1.75, -1.25, -1.6, 0])
+    parser.add_argument('--initial_qpos', type=float, nargs='+', default=[0.0, 0.0])
     
     # Visualization options
     parser.add_argument('--no_viewer', action='store_true')
