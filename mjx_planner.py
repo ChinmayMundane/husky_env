@@ -148,7 +148,7 @@ class cem_planner():
 		self.vec_product = jax.jit(jax.vmap(self.comp_prod, 0, out_axes=(0)))
 		
 
-		self.model_path = f"{os.path.dirname(__file__)}/default3.xml" 
+		self.model_path = f"{os.path.dirname(__file__)}/defaultflat.xml" 
 		self.model = mujoco.MjModel.from_xml_path(self.model_path)
 		self.data = mujoco.MjData(self.model)
 		self.model.opt.timestep = self.t

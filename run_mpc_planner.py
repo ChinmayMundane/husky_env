@@ -30,7 +30,7 @@ results = run_cem_planner(
     # Initial configuration
 
     # syntax for husk is qpos: [x, y, z, qw, qx, qy, qz, front_left, front_right, rear_left, rear_right]
-    initial_qpos = np.array([0.0, 0.0, 1.85, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+    initial_qpos = np.array([0.0, 0.0, 0.15, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
     
     # Target sequence
     target_names=['target_0', 'target_1'],
