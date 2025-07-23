@@ -1,13 +1,13 @@
 <mujoco model="uneven_terrain_scene_mjx">
   <compiler angle="radian" coordinate="local" meshdir="./stls/dual_ur5_husky" texturedir="./textures"/>
 
-  <option timestep="0.002"
+  <!-- <option timestep="0.002"
           iterations="10"
           tolerance="1e-10"
           impratio="10"
           gravity="0 0 -9.81"
           solver="Newton"
-          cone="elliptic"/>
+          cone="elliptic"/> -->
 
   <size nuserdata="100" njmax="500" nconmax="1000" nstack="600000" nuser_body="9" nuser_jnt="1" nuser_site="1" nuser_tendon="1" nuser_actuator="12" nuser_sensor="1"/>
 
@@ -22,7 +22,7 @@
   </visual>
 
   <default>
-    <geom contype="1" conaffinity="1" margin="0.002" solimp="0.95 0.95 0.01" solref="0.01 1" condim="4" friction="1.2 0.05 0.05"/>
+    <geom contype="1" conaffinity="1" margin="0.002" solimp="0.9 0.95 0.001" solref="0.02 1" condim="4" friction="1.2 0.05 0.05"/>
     <joint armature="0.01" damping="0.1"/>
     <default class="UR5">
       <joint damping="200"/>
@@ -32,7 +32,7 @@
     </default>
     <default class="GRIPPER">
       <joint damping="5"/>
-      <geom rgba="0.424 0.424 0.424 1.0" contype="1" conaffinity="1" margin="0.002" solimp="0.95 0.95 0.01" solref="0.01 1" condim="4" type="mesh"/>
+      <geom rgba="0.424 0.424 0.424 1.0" contype="1" conaffinity="1" margin="0.002" solimp="0.95 0.95 0.01" solref="0.01 1" condim="3" type="mesh"/>
     </default>
     <default class="ur5:blue">
       <geom rgba="0.635 0.784 0.910 1.0"/>
@@ -255,7 +255,7 @@
     <!-- <geom type="hfield" material="plain" hfield="hfield" friction="1.0 0.005 0.0001" condim="6" solimp="0.8 0.9 0.1" solref="0.005 2" margin="0" gap="0" />   -->
     <geom name="terrain" type="plane" size="10 10 0.1" material="plain" friction="0.6 0.01 0.01" condim="6" solimp="0.8 0.8 0.1" solref="0.01 0.8" margin="0"/>
 
-    <body name="robot0:base_link" pos="0 0 2.0">
+    <body name="robot0:base_link" pos="0 0 0.2">
       <geom name="base_link_visual" type="mesh" contype="0" conaffinity="0" group="1" mesh="base_link"/>
       <!-- <geom name="base_link_collision" type="mesh" mesh="base_link" friction="1.5 0.1 0.1" margin="0"/> -->
       <geom name="base_link_collision" size="0.4937 0.28545 0.061875" type="box" friction="1.5 0.1 0.1" margin="0"/>
@@ -294,20 +294,46 @@
     </body>
   </worldbody>
 
-  <tendon>
+  <!-- <tendon>
     <fixed name="forward">
-      <joint joint="rear_left_wheel" coef="0.5"/>
-      <joint joint="rear_right_wheel" coef="0.5"/>
+      <joint joint="rear_left_wheel" coef="1.5"/>
+      <joint joint="rear_right_wheel" coef="1.5"/>
     </fixed>
     <fixed name="turn">
-      <joint joint="rear_left_wheel" coef="-0.5"/>
-      <joint joint="rear_right_wheel" coef="0.5"/>
+      <joint joint="rear_left_wheel" coef="-1.5"/>
+      <joint joint="rear_right_wheel" coef="1.5"/>
+    </fixed>
+  </tendon> -->
+
+  <tendon>
+    <fixed name="forward">
+      <joint joint="front_left_wheel" coef="1"/>
+      <joint joint="rear_left_wheel" coef="1"/>
+      <joint joint="front_right_wheel" coef="1"/>
+      <joint joint="rear_right_wheel" coef="1"/>
+    </fixed>
+    <fixed name="turn">
+      <joint joint="front_left_wheel" coef="-1"/>
+      <joint joint="rear_left_wheel" coef="-1"/>
+      <joint joint="front_right_wheel" coef="1"/>
+      <joint joint="rear_right_wheel" coef="1"/>
     </fixed>
   </tendon>
 
-  <actuator>
+
+  <!-- <actuator>
     <motor name="forward" tendon="forward" ctrlrange="-8.0 8.0" gear="150"/>
     <motor name="turn" tendon="turn" ctrlrange="-8.0 8.0" gear="150"/>
+  </actuator> -->
+
+  <!-- <actuator>
+    <motor name="forward" tendon="forward" ctrlrange="-50.0 50.0" gear="3"/>
+    <motor name="turn" tendon="turn" ctrlrange="-50.0 50.0" gear="3"/>
+  </actuator> -->
+
+  <actuator>
+    <motor name="forward" tendon="forward" ctrlrange="-100.0 100.0" gear="2"/>
+    <motor name="turn" tendon="turn" ctrlrange="-50.0 50.0" gear="2"/>
   </actuator>
 
   <sensor>
